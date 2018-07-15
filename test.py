@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, requests, argparse, http, datetime
+import os, sys, requests, argparse, http, datetime, socket
 from prettytable import PrettyTable
 
 def parse_args():
@@ -19,38 +19,53 @@ def test_single_domain(domain):
     table.align = 'l' # Align left
 
     try:
+        try:
+            print('\033[33mChecking %s:80\033[0m' % (domain))
+            h1 = http.client.HTTPConnection(domain, timeout=10)
+            h1.request("GET", "/")
+            r1 = h1.getresponse()
+            http_status = '%s %s' % (r1.status, r1.reason)
+            print('HTTP status: %s' % http_status)
+        except socket.timeout:
+            print('Timeout Reached for domain %s' % domain)
+            http_status = 'Timed out'
+            pass
 
-        print('\033[33mChecking %s:80\033[0m' % (domain))
-        h1 = http.client.HTTPConnection(domain)
-        h1.request("GET", "/")
-        r1 = h1.getresponse()
-        http_status = '%s %s' % (r1.status, r1.reason)
-        print('HTTP status: %s' % http_status)
+        try:
+            print('\033[33mChecking %s:443\033[0m' % (domain))
+            h2 = http.client.HTTPSConnection(domain, timeout=10)
+            h2.request("GET", "/")
+            r2 = h2.getresponse()
+            https_status = '%s %s' % (r2.status, r2.reason)
+            print('HTTPS status: %s' % https_status)
+        except socket.timeout:
+            print('Timeout Reached for domain %s' % domain)
+            https_status = 'Timed out'
 
-
-        print('\033[33mChecking %s:443\033[0m' % (domain))
-        h2 = http.client.HTTPSConnection(domain)
-        h2.request("GET", "/")
-        r2 = h2.getresponse()
-        https_status = '%s %s' % (r2.status, r2.reason)
-        print('HTTPS status: %s' % https_status)
-
-
-        if r2.status == 200:
-            https = True
-        else:
+        try:
+            if r2.status == 200:
+                https = True
+            else:
+                https = False
+        except Exception:
             https = False
 
         # ToDo: Fix redirect test
-        if not r1.status == 200:
-            redirect = True
-        else:
+        try:
+            if not r1.status == 200:
+                redirect = True
+            else:
+                redirect = False
+        except Exception:
             redirect = False
 
-        if not http_status[0] == 200:
-            if r2.getheader('X-XSS-Protection') == '1; mode=block':
-                xss_protection = True
-            else:
+        if not http_status.startswith('200'):
+            try:
+                if r2.getheader('X-XSS-Protection') == '1; mode=block':
+                    xss_protection = True
+                else:
+                    xss_protection = False
+            except Exception:
                 xss_protection = False
         else:
             if r1.getheader('X-XSS-Protection') == '1; mode=block':
@@ -85,27 +100,37 @@ def test_domains(file):
         for domain in f:
             domain = domain.strip() # Strip \n and b' and stuff
 
-            print('\033[33mChecking %s:80\033[0m' % (domain))
-            h1 = http.client.HTTPConnection(domain)
-            h1.request("GET", "/")
-            r1 = h1.getresponse()
-            http_status = '%s %s' % (r1.status, r1.reason)
-            print('HTTP status: %s' % http_status)
+            try:
+                print('\033[33mChecking %s:80\033[0m' % (domain))
+                h1 = http.client.HTTPConnection(domain, timeout=10)
+                h1.request("GET", "/")
+                r1 = h1.getresponse()
+                http_status = '%s %s' % (r1.status, r1.reason)
+                print('HTTP status: %s' % http_status)
+            except socket.timeout:
+                print('Timeout Reached for domain %s' % domain)
+                http_status = 'Timed out'
+                continue
 
+            try:
+                print('\033[33mChecking %s:443\033[0m' % (domain))
+                h2 = http.client.HTTPSConnection(domain, timeout=10)
+                h2.request("GET", "/")
+                r2 = h2.getresponse()
+                https_status = '%s %s' % (r2.status, r2.reason)
+                print('HTTPS status: %s' % https_status)
+            except socket.timeout:
+                print('Timeout Reached for domain %s' % domain)
+                https_status = 'Timed out'
+                continue
 
-            print('\033[33mChecking %s:443\033[0m' % (domain))
-            h2 = http.client.HTTPSConnection(domain)
-            h2.request("GET", "/")
-            r2 = h2.getresponse()
-            https_status = '%s %s' % (r2.status, r2.reason)
-            print('HTTPS status: %s' % https_status)
 
             if r1.status != 200 and r2.status != 200 and domain.startswith('www.'):
                 print("\033[33mBoth HTTP and HTTPS seem to be unreachable for %s, check the domain. Trying again, stripping www.\033[0m" % domain)
                 if domain.startswith('www.'):
                     domain = domain[4:] # Strip www.
                     print('\033[33mChecking %s:80\033[0m' % (domain))
-                    h1 = http.client.HTTPConnection(domain)
+                    h1 = http.client.HTTPConnection(domain, timeout=10)
                     h1.request("GET", "/")
                     r1 = h1.getresponse()
                     http_status = '%s %s' % (r1.status, r1.reason)
@@ -113,7 +138,7 @@ def test_domains(file):
 
 
                     print('\033[33mChecking %s:443\033[0m' % (domain))
-                    h2 = http.client.HTTPSConnection(domain)
+                    h2 = http.client.HTTPSConnection(domain, timeout=10)
                     h2.request("GET", "/")
                     r2 = h2.getresponse()
                     https_status = '%s %s' % (r2.status, r2.reason)
@@ -139,23 +164,31 @@ def test_domains(file):
                     print('HTTPS status: %s' % https_status)
 
 
-
-            if r2.status == 200:
-                https = True
-                c+=1 # Count https domains
-            else:
+            try:
+                if r2.status == 200:
+                    https = True
+                    c+=1 # Count https domains
+                else:
+                    https = False
+            except Exception:
                 https = False
 
             # ToDo: Fix redirect test
-            if not r1.status == 200:
-                redirect = True
-            else:
+            try:
+                if not r1.status == 200:
+                    redirect = True
+                else:
+                    redirect = False
+            except Exception:
                 redirect = False
 
-            if not http_status[0] == 200:
-                if r2.getheader('X-XSS-Protection') == '1; mode=block':
-                    xss_protection = True
-                else:
+            if not http_status.startswith('200'):
+                try:
+                    if r2.getheader('X-XSS-Protection') == '1; mode=block':
+                        xss_protection = True
+                    else:
+                        xss_protection = False
+                except Exception:
                     xss_protection = False
             else:
                 if r1.getheader('X-XSS-Protection') == '1; mode=block':
@@ -177,6 +210,7 @@ def test_domains(file):
         print(table) # Show result
 
         print("\033[32mFinished checking {} domains in {} of which {}% has HTTPS.\033[0m".format(len(f), datetime.datetime.now()-start, secure))
+
 
     except Exception as e:
         print(e)
