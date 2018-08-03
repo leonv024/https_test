@@ -91,11 +91,25 @@ def run(domain):
     except Exception:
         https = False
 
-    # ToDo: Fix redirect test
+    # Follow redirects
     try:
-        if not r1.status == 200:
-            redirect = True
+        r = requests.get('http://' + domain)
+
+        if r.history:
+            print("Request was redirected")
+            for resp in r.history:
+                print(resp.status_code, resp.url)
+            #print("Final destination: [%s] %s" % r.status_code, r.url)
+            print("Final destination:")
+            print(r.status_code, r.url)
+            if r.url.startswith('https://'):
+                redirect = True
+                if not https == True:
+                    https = True
+                    https_status = '%s %s' % (r.status_code, r.reason)
+                    c +=1
         else:
+            print("Request was not redirected")
             redirect = False
     except Exception:
         redirect = False
@@ -124,7 +138,7 @@ def run(domain):
 def test_single_domain(domain):
     starts = datetime.datetime.now()
 
-    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Auto redirected', 'X-XSS-Protection']) # Table header
+    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Redirected', 'X-XSS-Protection']) # Table header
     table.align = 'l' # Align left
 
     try:
