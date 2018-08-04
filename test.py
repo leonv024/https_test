@@ -226,8 +226,7 @@ def test_domains(file):
             table.add_row([result[0], result[1], result[2], result[3], result[4], result[5]])
 
         # Calculate how much percentage is HTTPS.
-        one = 100 / len(f)
-        secure = c*int(one)
+        secure = 100 / len(f) * c
 
         print(table) # Show result
 
