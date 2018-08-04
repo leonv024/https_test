@@ -12,9 +12,11 @@ def parse_args():
 
 args = parse_args()
 
+
+c = 0
+
 def run(domain):
     global c
-    c = 0
 
     print("\033[32mRunning...\033[0m")
 
@@ -156,7 +158,7 @@ def run(domain):
                 if not https == True:
                     https = True
                     https_status = '%s %s' % (r.status_code, r.reason)
-                    c +=1
+                    c+=1
             elif r.url.startswith('http://') and r.status_code == 200:
                 redirect = False
                 http_status = '200 OK'
@@ -223,8 +225,7 @@ def test_domains(file):
 
             table.add_row([result[0], result[1], result[2], result[3], result[4], result[5]])
 
-        # Calculate how much % is HTTPS.
-        # This part is currently broken, duo to variable c, though it is a global variable.
+        # Calculate how much percentage is HTTPS.
         one = 100 / len(f)
         secure = c*int(one)
 
