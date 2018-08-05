@@ -174,16 +174,14 @@ def run(domain):
         if r.history:
             #print("Request was redirected")
             tqdm.write("Request was redirected")
-
-            # These debug lines somehow break the redirect test, therefor they were removed.
-            # tqdm.write() seems to break it. Less debug, big deal.
-            #for resp in r.history:
+            
+            for resp in r.history:
                 #print(resp.status_code, resp.url)
-                #tqdm.write(resp.status_code, resp.url)
+                tqdm.write('%s %s' % (resp.status_code, resp.url))
             #print("Final destination:")
-            #tqdm.write("Final destination:")
+            tqdm.write("Final destination:")
             #print(r.status_code, r.url)
-            #tqdm.write(r.status_code, r.url)
+            tqdm.write('%s %s' % (r.status_code, r.url))
 
             if r.url.startswith('https://') and r.status_code == 200:
                 redirect = True
@@ -252,7 +250,7 @@ def test_domains(file):
 
     try:
         f = open(file).readlines()
-        
+
         with tqdm(total=(len(f)), desc='Progress') as bar:
             for domain in f:
                 domain = domain.strip() # Strip \n and b' and stuff
@@ -262,7 +260,7 @@ def test_domains(file):
 
             # Calculate how much percentage is HTTPS and error.
             secure = 100 / len(f) * c
-
+            print('\n')
             print(table) # Show result
 
             print("\033[32mFinished checking {} domains in {} of which {} ({}%) has HTTPS.\033[0m".format(len(f), datetime.datetime.now()-start, c, secure))
