@@ -3,6 +3,11 @@
 ***
 
 Test a list with websites for http/https.
+Note that you can DNS spoof pages that return "HTTP 200 OK", such as Google or LinkedIn.
+
+To prevent DNS spoofing on your device, use the "HTTPS Everywhere" plugin for your browser.
+This plugin is also available for Firefox on mobile devices.
+
 
 Installation:
 ```Shell
