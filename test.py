@@ -37,7 +37,7 @@ def run(domain):
         http_status = 'Timed out'
         pass
     except Exception:
-        print('\033[31mA HTTP Error occured for domain %s\033[0m' % domain)
+        tqdm.write('\033[31mA HTTP Error occured for domain %s\033[0m' % domain)
         http_status = 'HTTP Error'
         redirect = False
         xss_protection = False
@@ -174,7 +174,7 @@ def run(domain):
         if r.history:
             #print("Request was redirected")
             tqdm.write("Request was redirected")
-            
+
             for resp in r.history:
                 #print(resp.status_code, resp.url)
                 tqdm.write('%s %s' % (resp.status_code, resp.url))
