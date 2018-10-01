@@ -23,6 +23,11 @@ chmod +x test.py
 ./test.py -h
 ```
 
+Windows:
+```Shell
+py test.py -h
+```
+
 Usage:
 ```Shell
 usage: HTTPS Test [-h] [-f FILE] [-d DOMAIN]
