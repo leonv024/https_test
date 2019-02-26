@@ -276,9 +276,29 @@ def test_domains(file):
         print(table) # Show result
         print('\nCanceled...')
 
+def banner():
+    logo = '''
+     .--------.
+    / .------. \\
+   / /        \ \\
+   | |        | |
+  _| |________| |_
+.' |_|        |_| '.
+'._____ ____ _____.'
+|     .'____'.     |
+'.__.'.'    '.'.__.'
+'.__  |      |  __.'
+|   '.'.____.'.'   |
+'.____'.____.'____.'
+'.________________.'
+    '''
+    return logo
+
 if args.domain:
+    print(banner())
     test_single_domain(args.domain)
 elif args.file:
+    print(banner())
     if os.path.isfile(args.file):
         test_domains(args.file)
     else:
