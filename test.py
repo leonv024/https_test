@@ -15,9 +15,33 @@ args = parse_args()
 
 
 c = 0
+yes = 0
+no = 0
+xss = 0
+so_c = 0
+st_c = 0
+ns_c = 0
+rp_c = 0
+csp_c = 0
+pp_c = 0
 
 def run(domain):
     global c
+    global c
+    global yes
+    global no
+    global xss
+    global so_c
+    global ns_c
+    global st_c
+    global rp_c
+    global csp_c
+    global pp_c
+
+    headers = {
+    'User-Agent': 'SSLHero.nl 1.1',
+    'From': 'mail@leonvoerman.nl'
+    }
 
     #print("\033[32mRunning...\033[0m")
     tqdm.write('\033[32mRunning...\033[0m')
@@ -26,7 +50,7 @@ def run(domain):
         tqdm.write('\033[33mChecking %s:80\033[0m' % (domain))
 
         h1 = http.client.HTTPConnection(domain, timeout=3)
-        h1.request("GET", "/")
+        h1.request("GET", "/", "", headers)
         r1 = h1.getresponse()
         http_status = '%s %s' % (r1.status, r1.reason)
         #print('HTTP status: %s' % http_status)
@@ -41,6 +65,8 @@ def run(domain):
         http_status = 'HTTP Error'
         redirect = False
         xss_protection = False
+        so = False
+        ns = False
         #result = domain, http_status, https_status, https, redirect, xss_protection
         #return result
         pass
@@ -49,7 +75,7 @@ def run(domain):
         #print('\033[33mChecking %s:443\033[0m' % (domain))
         tqdm.write('\033[33mChecking %s:443\033[0m' % (domain))
         h2 = http.client.HTTPSConnection(domain, timeout=3)
-        h2.request("GET", "/")
+        h2.request("GET", "/", "", headers)
         r2 = h2.getresponse()
         https_status = '%s %s' % (r2.status, r2.reason)
         #print('HTTPS status: %s' % https_status)
@@ -62,6 +88,8 @@ def run(domain):
         https = False
         redirect = False
         xss_protection = False
+        so = False
+        ns = False
         result = domain, http_status, https_status, https, redirect, xss_protection
         return result
     except Exception:
@@ -71,6 +99,8 @@ def run(domain):
         https = False
         redirect = False
         xss_protection = False
+        so = False
+        ns = False
         #result = domain, http_status, https_status, https, redirect, xss_protection
         #return result
         pass
@@ -85,7 +115,7 @@ def run(domain):
                     #print('\033[33mChecking %s:80\033[0m' % (domain))
                     tqdm.write('\033[33mChecking %s:80\033[0m' % (domain))
                     h1 = http.client.HTTPConnection(domain, timeout=3)
-                    h1.request("GET", "/")
+                    h1.request("GET", "/", "", headers)
                     r1 = h1.getresponse()
                     http_status = '%s %s' % (r1.status, r1.reason)
                     #print('HTTP status: %s' % http_status)
@@ -100,7 +130,7 @@ def run(domain):
                     #print('\033[33mChecking %s:443\033[0m' % (domain))
                     tqdm.write('\033[33mChecking %s:443\033[0m' % (domain))
                     h2 = http.client.HTTPSConnection(domain, timeout=3)
-                    h2.request("GET", "/")
+                    h2.request("GET", "/", "", headers)
                     r2 = h2.getresponse()
                     https_status = '%s %s' % (r2.status, r2.reason)
                     #print('HTTPS status: %s' % https_status)
@@ -112,6 +142,8 @@ def run(domain):
                     https = False
                     redirect = False
                     xss_protection = False
+                    so = False
+                    ns = False
                     result = domain, http_status, https_status, https, redirect, xss_protection
                     return result
 
@@ -125,7 +157,7 @@ def run(domain):
                     #print('\033[33mChecking %s:80\033[0m' % (domain))
                     tqdm.write('\033[33mChecking %s:80\033[0m' % (domain))
                     h1 = http.client.HTTPConnection(domain, timeout=3)
-                    h1.request("GET", "/")
+                    h1.request("GET", "/", "", headers)
                     r1 = h1.getresponse()
                     http_status = '%s %s' % (r1.status, r1.reason)
                     #print('HTTP status: %s' % http_status)
@@ -140,7 +172,7 @@ def run(domain):
                     #print('\033[33mChecking %s:443\033[0m' % (domain))
                     tqdm.write('\033[33mChecking %s:443\033[0m' % (domain))
                     h2 = http.client.HTTPSConnection(domain, timeout=3)
-                    h2.request("GET", "/")
+                    h2.request("GET", "/", "", headers)
                     r2 = h2.getresponse()
                     https_status = '%s %s' % (r2.status, r2.reason)
                     #print('HTTPS status: %s' % https_status)
@@ -152,6 +184,8 @@ def run(domain):
                     https = False
                     redirect = False
                     xss_protection = False
+                    so = False
+                    ns = False
                     result = domain, http_status, https_status, https, redirect, xss_protection
                     return result
     except Exception as e:
@@ -202,37 +236,244 @@ def run(domain):
     except Exception:
         redirect = False
 
-    if not http_status.startswith('200'):
-        try:
+    try:
+        if not http_status.startswith('200'):
+
             if r2.getheader('X-XSS-Protection') == '1; mode=block':
                 xss_protection = True
             else:
                 xss_protection = False
-        except Exception:
-            xss_protection = False
-    else:
-        if r1.getheader('X-XSS-Protection') == '1; mode=block':
-            xss_protection = True
+
         else:
-            xss_protection = False
+            if r1.getheader('X-XSS-Protection') == '1; mode=block':
+                xss_protection = True
+            else:
+                xss_protection = False
+    except Exception:
+        xss_protection = False
 
     #print('X-XSS-Protection: %s' % xss_protection)
     tqdm.write('X-XSS-Protection: %s' % xss_protection)
 
+    try:
+        if not http_status.startswith('200'):
+
+            if r2.getheader('X-Frame-Options') == 'SAMEORIGIN':
+                so = True
+                so_c +=1
+            else:
+                so = False
+
+        else:
+            if r1.getheader('X-Frame-Options') == 'SAMEORIGIN':
+                so = True
+                so_c +=1
+            else:
+                so = False
+    except Exception as e:
+        #print(e)
+        pass
+        so = False
+
+    tqdm.write('X-Frame-Options: %s' % so)
+
+    if not http_status.startswith('200'):
+        try:
+            if r2.getheader('X-Content-Type-Options') == 'nosniff':
+                ns = True
+                ns_c +=1
+            else:
+                ns = False
+        except Exception as e:
+            #print(e)
+            pass
+            ns = False
+    else:
+        if r1.getheader('X-Content-Type-Options') == 'nosniff':
+            ns = True
+            ns_c +=1
+        else:
+            ns = False
+
+    tqdm.write('X-Content-Type-Options: %s' % ns)
+
+    try:
+        if not http_status.startswith('200'):
+            if 'max-age=' in r2.getheader('Strict-Transport-Security'):
+                st = True
+                st_c +=1
+            else:
+                st = False
+
+        else:
+            if 'max-age=' in r1.getheader('Strict-Transport-Security'):
+                st = True
+                st_c +=1
+            else:
+                st = False
+    except Exception as e:
+        #print(e)
+        pass
+        st = False
+
+    try:
+        if not http_status.startswith('200'):
+
+            if r2.getheader('Referrer-Policy'):
+                rp = True
+                rp_c +=1
+            else:
+                rp = False
+
+        else:
+            if r1.getheader('Referrer-Policy'):
+                rp = True
+                rp_c +=1
+            else:
+                rp = False
+    except Exception as e:
+        #print(e)
+        pass
+        rp = False
+
+    tqdm.write('Referrer-Policy: %s' % rp)
+
+    try:
+        if not http_status.startswith('200'):
+
+            if r2.getheader('Content-Security-Policy'):
+                csp = True
+                csp_c +=1
+            else:
+               csp = False
+        else:
+            if r1.getheader('Content-Security-Policy'):
+                csp = True
+                csp_c +=1
+            else:
+                csp = False
+    except Exception as e:
+        #print(e)
+        pass
+        csp = False
+
+    tqdm.write('Content-Security-Policy: %s' % csp)
+
+    try:
+        if not http_status.startswith('200'):
+
+            if r2.getheader('Permissions-Policy'):
+                pp = True
+                pp_c +=1
+            else:
+               pp = False
+        else:
+            if r1.getheader('Permissions-Policy'):
+                pp = True
+                pp_c +=1
+            else:
+                pp = False
+    except Exception as e:
+        #print(e)
+        pass
+        pp = False
+
+    tqdm.write('Permissions-Policy: %s' % pp)
+
+    if http_status.startswith('200'):
+        no +=1
+    if https_status.startswith('200'):
+        yes +=1
+
     h1.close(); h2.close() # Close connections
 
-    result = domain, http_status, https_status, https, redirect, xss_protection
+    g = 0
+
+    if https == True:
+        g +=1
+
+    if redirect == True:
+        g +=1
+
+    if xss_protection == True:
+        g +=1
+
+    if so == True:
+        g +=1
+
+    if ns == True:
+        g +=1
+
+    if st == True:
+        g +=1
+
+    if rp == True:
+        g +=1
+
+    if csp == True:
+        g +=1
+
+    if pp == True:
+        g +=1
+
+    g = int(g) / 9 * 100
+
+    if int(g) >= 97:
+        grade = 'A+'
+        col = 'success'
+    elif int(g) >= 93 <= 96:
+        grade = 'A'
+        col = 'success'
+    elif int(g) >= 90 <= 92:
+        grade = 'A-'
+        col = 'success'
+    elif int(g) >= 87 <= 89:
+        grade = 'B+'
+        col = 'warning'
+    elif int(g) >= 83 <= 86:
+        grade = 'B'
+        col = 'warning'
+    elif int(g) >= 80 <= 82:
+        grade = 'B-'
+        col = 'warning'
+    elif int(g) >= 77 <= 79:
+        grade = 'C+'
+        col = 'warning'
+    elif int(g) >= 73 <= 76:
+        grade = 'C'
+        col = 'warning'
+    elif int(g) >= 70 <= 72:
+        grade = 'C-'
+        col = 'warning'
+    elif int(g) >= 67 <= 69:
+        grade = 'D+'
+        col = 'warning'
+    elif int(g) >= 63 <= 66:
+        grade = 'D'
+        col = 'warning'
+    elif int(g) >= 60 <= 62:
+        grade = 'D-'
+        col = 'danger'
+    elif int(g) <= 59:
+        grade = 'F'
+        col = 'danger'
+    else:
+        grade = 'Error'
+        col = 'danger'
+
+    result = domain, http_status, https_status, https, redirect, xss_protection, so, ns, st, rp, csp, pp, grade
     return result
+    print(g, grade)
 
 def test_single_domain(domain):
     starts = datetime.datetime.now()
 
-    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Redirected', 'X-XSS-Protection']) # Table header
+    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Redirected', 'X-XSS-Protection', 'Same Origin', 'No Sniff', 'HSTS', 'Referrer Policy', 'CSP', 'Permission Policy', 'Grade']) # Table header
     table.align = 'l' # Align left
 
     try:
         result = run(domain)
-        table.add_row([result[0], result[1], result[2], result[3], result[4], result[5]])
+        table.add_row([result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7], result[8], result[9], result[10], result[11], result[12]])
         print(table) # Show result
 
     except Exception as e:
@@ -245,7 +486,7 @@ def test_single_domain(domain):
 def test_domains(file):
     start = datetime.datetime.now()
 
-    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Redirected', 'X-XSS-Protection']) # Table header
+    table = PrettyTable(['Domain', 'HTTP status', 'HTTPS status', 'HTTPS', 'Redirected', 'X-XSS-Protection', 'Same Origin', 'No Sniff', 'HSTS', 'Referrer Policy', 'CSP', 'Permission Policy', 'Grade']) # Table header
     table.align = 'l' # Align left
 
     try:
@@ -256,7 +497,7 @@ def test_domains(file):
                 domain = domain.strip() # Strip \n and b' and stuff
                 result = run(domain) # Run test
                 bar.update(1)
-                table.add_row([result[0], result[1], result[2], result[3], result[4], result[5]])
+                table.add_row([result[0], result[1], result[2], result[3], result[4], result[5], result[6], result[7], result[8], result[9], result[10], result[11], result[12]])
 
             # Calculate how much percentage is HTTPS and error.
             secure = 100 / len(f) * c
